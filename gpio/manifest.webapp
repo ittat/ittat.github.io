@@ -1,27 +1,46 @@
 {
-    "version": "1.0",
-    "name": "JayME",
-    "description": "Java Mobile Edition emulator for Firefox OS.",
-    "package_path": "https://ittat.github.io/fxosapp/gpio/application.zip",
-    "permissions": {
-        "device-storage:sdcard":{ 
-	    "access": "readonly",
-	    "description": "JARs"
-	},
-        "tcp-socket" : {
-            "description" : "Emulate sockets."
-        }
+  "version": "0.0.1",
+  "name": "Kava",
+  "description": "J2ME emulator for KaiOS",
+  "type": "privileged",
+  "permissions": {
+    "device-storage:sdcard":{ 
+      "access": "readonly",
+      "description": "JAR picking"
     },
-    "launch_path": "/index.html",
-    "orientation": ["portrait"],
-    "installs_allowed_from": [
-        "*"
-    ],
-    "icons": {
-        "128": "/img/icon128.png"
+    "storage": {
+      "description": "Unlimited storage"
     },
-    "developer": {
-	"name": "Tomasz Szatkowski",
-	"url": "http://www.szatkus.pl"
+    "tcp-socket" : {
+      "description" : "Emulate sockets"
     }
+  },
+  "origin": "app://kava.831337.xyz",
+  "launch_path": "/index.html",
+  "orientation": ["portrait"],
+  "installs_allowed_from": [
+    "*"
+  ],
+  "fullscreen": "true",
+  "icons": {
+    "56": "/img/icon56.png",
+    "112": "/img/icon112.png"
+  },
+  "developer": {
+    "name": "Luxferre"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Kava",
+      "description": "J2ME emulator for KaiOS"
+    }
+  },
+  "default_locale": "en-US",
+  "activities": {
+    "xyz.831337.kava.pickFile": {
+      "href": "./picker.html",
+      "disposition": "inline",
+      "returnValue": true
+    }
+  }
 }
