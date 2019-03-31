@@ -3,7 +3,6 @@
     "name": "JayME",
     "description": "Java Mobile Edition emulator for Firefox OS.",
     "package_path": "https://ittat.github.io/fxosapp/gpio/application.zip",
-    "type": "privileged",
     "permissions": {
         "device-storage:sdcard":{ 
 	    "access": "readonly",
