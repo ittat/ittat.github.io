@@ -1,15 +1,105 @@
 [
   
     {
-      "title"    : "没有VPN的情况下同步LineageOS源代码",
-      "tags"     : "Lineage Android complie",
-      "url"      : "/2017/08/27/%E6%B2%A1%E6%9C%89VPN%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%90%8C%E6%AD%A5LineageOS%E6%BA%90%E4%BB%A3%E7%A0%81.html"
+      "title"    : "Xpcom 思想理解 Xpcom构架",
+      "tags"     : "",
+      "url"      : "/2018/10/02/xpcom-%E6%80%9D%E6%83%B3%E7%90%86%E8%A7%A3-xpcom%E6%9E%84%E6%9E%B6.html"
     } ,
   
     {
-      "title"    : "Hello Jekyll",
-      "tags"     : "jekyll",
-      "url"      : "/2017/04/18/hello-jekyll.html"
+      "title"    : "Test",
+      "tags"     : "",
+      "url"      : "/2018/10/02/test.html"
+    } ,
+  
+    {
+      "title"    : "Ffos Shell.js System App And Homescreen",
+      "tags"     : "",
+      "url"      : "/2018/10/02/ffos-shell.js-system-app-and-homescreen.html"
+    } ,
+  
+    {
+      "title"    : "Ffos Nfc Bug V 2.5调试",
+      "tags"     : "",
+      "url"      : "/2018/10/02/ffos-nfc-bug-v-2.5%E8%B0%83%E8%AF%95.html"
+    } ,
+  
+    {
+      "title"    : "Ffos Nfc 2.5 Porting",
+      "tags"     : "",
+      "url"      : "/2018/10/02/ffos-nfc-2.5-porting.html"
+    } ,
+  
+    {
+      "title"    : "Ffos Init B2g 启动过程",
+      "tags"     : "",
+      "url"      : "/2018/10/02/ffos-init-b2g-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B.html"
+    } ,
+  
+    {
+      "title"    : "Ffos(gecko) Gecko下xpcom组件开发参考文档",
+      "tags"     : "",
+      "url"      : "/2018/10/02/ffos(gecko)-gecko%E4%B8%8BXPCOM%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3.html"
+    } ,
+  
+    {
+      "title"    : "B2g入口 B2g做了些什么工作",
+      "tags"     : "",
+      "url"      : "/2018/10/02/b2g%E5%85%A5%E5%8F%A3-b2g%E5%81%9A%E4%BA%86%E4%BA%9B%E4%BB%80%E4%B9%88%E5%B7%A5%E4%BD%9C.html"
+    } ,
+  
+    {
+      "title"    : "B2g loader Loadstaticdata",
+      "tags"     : "",
+      "url"      : "/2018/10/02/b2g-loader-loadstaticdata.html"
+    } ,
+  
+    {
+      "title"    : "Xpcom Links",
+      "tags"     : "",
+      "url"      : "/2018/10/02/XPCOM-LINKS.html"
+    } ,
+  
+    {
+      "title"    : "Firefox os启动过程分析 System应用启动",
+      "tags"     : "",
+      "url"      : "/2018/10/02/Firefox-OS%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90-system%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8.html"
+    } ,
+  
+    {
+      "title"    : "",
+      "tags"     : "FirefoxOS B2GOS",
+      "url"      : "/2018/10/02/FFos-finished-nfc-2.5.html"
+    } ,
+  
+    {
+      "title"    : "FirefoxOS学习相关资料收集",
+      "tags"     : "Deep Learning DL",
+      "url"      : "/2017/09/18/FirefoxOS%E5%AD%A6%E4%B9%A0%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86.html"
+    } ,
+  
+    {
+      "title"    : "smartisan U1编译CM13问题方案",
+      "tags"     : "Lineage Android complie CM",
+      "url"      : "/2017/09/13/smartisan-U1%E7%BC%96%E8%AF%91CM13%E9%97%AE%E9%A2%98(%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0).html"
+    } ,
+  
+    {
+      "title"    : "smartisan U1 CM13 device and vendor的编写记录（不断更新）",
+      "tags"     : "Lineage Android complie CM",
+      "url"      : "/2017/09/11/smartisan-U1-device-and-vendor-%E7%BC%96%E5%86%99(%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0).html"
+    } ,
+  
+    {
+      "title"    : "计算机二级MS office 资料收集整理",
+      "tags"     : "computer",
+      "url"      : "/2017/09/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BA%8C%E7%BA%A7MS-office.html"
+    } ,
+  
+    {
+      "title"    : "没有VPN的情况下同步LineageOS源代码",
+      "tags"     : "Lineage Android complie",
+      "url"      : "/2017/08/27/%E6%B2%A1%E6%9C%89VPN%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%90%8C%E6%AD%A5LineageOS%E6%BA%90%E4%BB%A3%E7%A0%81.html"
     } 
   
 ]

@@ -1,0 +1,22 @@
+<!doctype html>
+
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+        <title>GPIO sample</title>
+    </head>
+    <body>
+      <h2>GPIO sample</h2>
+      <script>
+          var manifest ='https://ittat.github.io/fxosapp/gpio/manifest.webapp';
+          var req = navigator.mozApps.installPackage(manifest);
+          req.onsuccess =function(){
+            alert(this.result.origin);
+          };
+          req.onerror =function(){
+            alert(this.error.name);
+          };
+      </script>
+    </body>
+</html>

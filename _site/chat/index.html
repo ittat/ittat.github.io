@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewprot" content="width=device-width" />
+<title>Robot Chat</title>
+<link rel="shortcut icon" href="favicon.png">
+<link rel="icon" href="favicon.png" type="image/x-icon">
+<link type="text/css" rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" type="text/css" href="css/login.css">
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.js"></script>
+</head>
+
+<body>
+
+<div class="lg">
+  <form action="#" method="POST">
+      <div class="lg_top"></div>
+      <div class="lg_main">
+          <div class="lg_m_1">
+          <input name="username" id="username" value="" class="ur" />
+          <input name="password" id="password" type="password" value="" class="pw" />     
+          </div>
+      </div>
+      <div class="lg_foot">
+      <input  type="button" value="点这里登录" class="bn" /></div>
+  </form>
+</div>
+
+
+
+
+<div class="chatbox">
+  <div class="chat_top fn-clear">
+    <div class="logo">
+      <img src="images/logo.png" width="190" height="60"  alt=""/>
+    </div>
+    <div class="uinfo fn-clear">
+      <div class="uface"><img src="images/hetu.jpg" width="40" height="40"  alt=""/></div>
+      <div class="uname">
+        我<i class="fontico down"></i>
+        <ul class="managerbox">
+          <li><a href="#" id="logout"><i class="fontico logout"></i>退出登录</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="chat_message fn-clear">
+    <div class="chat_left">
+    <!-- 信息框 -->
+      <div class="message_box" id="message_box">
+      </div>
+      <!-- 输入框 -->
+      <div class="write_box">
+        <textarea id="message" name="message" class="write_area" placeholder="说点简单的吧...反正它不会明白你的意思..."></textarea>
+        <input type="hidden" name="fromname" id="fromname" value="河图" />
+        <input type="hidden" name="to_uid" id="to_uid" value="0">
+        <div class="facebox fn-clear">
+          <div class="expression"></div>
+          <div class="chat_type" id="chat_type"></div>
+          <button name="" class="sub_but">发 送</button>
+        </div>
+      </div>
+    </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+
+var userId;
+$(document).ready(function(){
+  $(".chatbox").hide();
+  $(".bn").click(function(){
+      var username = $('#username').val();
+      userId = username ;
+      var password = $('#password').val();
+      if (username == "123" && password == "456") {
+          $(".lg").hide();
+          $(".chatbox").show();
+      }else{
+        alert("这也打错了，重新输入！！");
+      }
+  });
+
+  $("#logout").click(function(){
+          $(".lg").show();
+          $(".chatbox").hide();
+
+  });
+});
+// scroll menu
+$(document).ready(function(e) {
+	$('#message_box').scrollTop($("#message_box")[0].scrollHeight + 20);
+	$('.uname').hover(
+	    function(){
+		    $('.managerbox').stop(true, true).slideDown(100);
+	    },
+		function(){
+		    $('.managerbox').stop(true, true).slideUp(100);
+		}
+	);
+
+
+	
+	var fromname = $('#fromname').val();
+	var to_uid   = 0; // 默认为0,表示发送给所有用户
+	var to_uname = '';
+  $('#chat_type').text('按下ctrl+enter发送消息');
+	// $('.user_list > li').dblclick(function(){
+	// 	to_uname = $(this).find('em').text();
+	// 	to_uid   = $(this).attr('data-id');
+	// 	if(to_uname == fromname){
+	// 	    alert('您不能和自己聊天!');
+	// 		return false;
+	// 	}
+	// 	if(to_uname == '所有用户'){
+	// 	    $("#toname").val('');
+	// 		$('#chat_type').text('群聊');
+	// 	}else{
+	// 	    $("#toname").val(to_uid);
+	// 		$('#chat_type').text('您正和 ' + to_uname + ' 聊天');
+	// 	}
+	// 	$(this).addClass('selected').siblings().removeClass('selected');
+	//     $('#message').focus().attr("placeholder", "您对"+to_uname+"说：");
+	// });
+	
+
+	$('.sub_but').click(function(event){
+	    sendMessage(event, fromname, to_uid, to_uname);
+	});
+	
+	/*按下按钮或键盘按键*/
+	$("#message").keydown(function(event){
+		var e = window.event || event;
+        var k = e.keyCode || e.which || e.charCode;
+		//按下ctrl+enter发送消息
+		if((event.ctrlKey && (k == 13 || k == 10) )){
+			sendMessage(event, fromname, to_uid, to_uname);
+		}
+	});
+});
+
+
+
+
+function sendMessage(event, from_name, to_uid, to_uname){
+    var msg = $("#message").val();
+	// if(to_uname != ''){
+	//     msg = '您对 ' + to_uname + ' 说： ' + msg;
+	// }
+          function GetJsonData() {
+              var json = {
+                "key": "65458a5df537443b89b31f1c03202a80",
+                "info": msg ,
+                "userid": userId
+              };
+              return json;
+          }
+          $.ajax({  
+                  type: "post",  
+                  url: "http://www.tuling123.com/openapi/api", 
+                  data: GetJsonData(), 
+                  contentType: "application/x-www-form-urlencoded",  
+                  dataType: "json",  
+                  success: function(message){
+                    var meg = JSON.stringify(message)
+                    var a = meg.indexOf(':"');
+                    var b = meg.indexOf('"}');
+                    var response = meg.substring(a+2, b);
+                    var htmlDataresponse =   '<div class="msg_item fn-clear">'
+                        + '   <div class="robot_uface"><img src="images/53f44283a4347.jpg" width="40" height="40"  alt=""/> <div class="name_time">傻逼机器人</div></div>'
+                        + '   <div class="item_left">'
+                        + '     <div class="msg robot">' + response + '</div>'
+                        + '   </div>'
+                        + '</div>';
+                    $("#message_box").append(htmlDataresponse);
+                    $('#message_box').scrollTop($("#message_box")[0].scrollHeight + 20);
+                  }
+          } );
+
+
+	var htmlData =   '<div class="msg_item fn-clear">'
+                   + '   <div class="uface"><img src="images/hetu.jpg" width="40" height="40"  alt=""/> <div class="name_time">我</div></div>'
+			       + '   <div class="item_right">'
+			       + '     <div class="msg own">' + msg + '</div>'
+			       + '   </div>'
+			       + '</div>';
+	$("#message_box").append(htmlData);
+	$('#message_box').scrollTop($("#message_box")[0].scrollHeight + 20);
+	$("#message").val('');
+
+}
+</script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-105630632-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-105630632-1');
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,790 @@
+<article>
+		<div id="article_content" class="article_content clearfix csdn-tracking-statistics" data-pid="blog" data-mod="popu_307" data-dsm="post">
+								<div class="article-copyright">
+					版权声明：本文为博主打劫来的文章！！！未经允许可以随便转载。 May you do good and not evil.  May you share freely, never taking more than you give.					https://blog.csdn.net/hunter___/article/details/81302113				</div>
+								            <link rel="stylesheet" href="https://csdnimg.cn/release/phoenix/template/css/ck_htmledit_views-e2445db1a8.css" />
+						<div class="htmledit_views">
+                <p>之前看的是init到系统启动到system app再到system app 将其他核心应用启动起来的过程。那么支持上层应用的底层（gecko 层的这些组件又做了什么呢？）</p>
+
+<p>启动过程总览：</p>
+
+<p>物理按键----&gt;固件（firmware）---&gt;(加载/启动)内核（kernel）----&gt;init进程---&gt;解析init.rc/init.b2g.rc(有b2g.sh)----&gt;b2g.sh---&gt;system/b2g/b2g(可执行文件由gecko/b2g/...生成)---&gt;(something i need to study now!!!)---&gt;libxul(.so)---&gt;b2g.js---&gt;shell.html---&gt;shell.js(SystemAppFrame(id=systemapp),load blank.html into this iframe)---&gt;system app---&gt;core app(homescreen ect...)</p>
+
+<p>而另一条线即是，b2g(可执行文件被执行之后（b2g进程）做了哪些支撑工作)</p>
+
+<p>&nbsp;</p>
+
+<p>b2g进程底层做的工作。</p>
+
+<p>理清：</p>
+
+<p>XPCOM的初始化，</p>
+
+<p>以及如何支持上层的应用（有点大了）。</p>
+
+<p>init进程启动许多进程，其中之一就是gecko的入口b2g,实际就是通过运行b2g.sh脚本执行了b2g可执行文件，b2g是gecko/b2g/app/B2GLoader.cpp编译生成的。</p>
+
+<p>主要分析b2g进程做了什么，从而支撑上层应用正常运行。</p>
+
+<pre class="has" name="code"><code>gecko/xpcom/build/nsXULAppAPI.h
+
+/**
+ * Begin an XUL application. Does not return until the user exits the
+ * application.
+ *
+ * @param argc/argv Command-line parameters to pass to the application. On
+ *                  Windows, these should be in UTF8. On unix-like platforms
+ *                  these are in the "native" character set.
+ *
+ * @param aAppData  Information about the application to be run.
+ *
+ * @param aFlags    Platform specific flags.
+ *
+ * @return         A native result code suitable for returning from main().
+ *
+ * @note           If the binary is linked against the standalone XPCOM glue,
+ *                 XPCOMGlueStartup() should be called before this method.
+ */
+XRE_API(int,
+        XRE_main, (int argc, char* argv[], const nsXREAppData* aAppData,
+                   uint32_t aFlags))
+</code></pre>
+
+<p>XRE_API()定义在xrecore.h中</p>
+
+<p>gecko/xpcom/build/xrecore.h</p>
+
+<pre class="has" name="code"><code>
+#include "nscore.h"
+
+/**
+ * Import/export macros for libXUL APIs.
+ */
+#ifdef XPCOM_GLUE
+#define XRE_API(type, name, params) \
+  typedef type (NS_FROZENCALL * name##Type) params; \
+  extern name##Type name NS_HIDDEN;
+#elif defined(IMPL_LIBXUL)
+#define XRE_API(type, name, params) EXPORT_XPCOM_API(type) name params;
+#else
+#define XRE_API(type, name, params) IMPORT_XPCOM_API(type) name params;
+#endif
+
+
+</code></pre>
+
+<p>gecko/xpcom/base/nscore.h</p>
+
+<pre class="has" name="code"><code>
+/* Core XPCOM declarations. */
+
+/*----------------------------------------------------------------------*/
+/* Import/export defines */
+
+...
+
+#define EXPORT_XPCOM_API(type) NS_EXTERN_C NS_EXPORT type NS_FROZENCALL
+#define IMPORT_XPCOM_API(type) NS_EXTERN_C NS_IMPORT type NS_FROZENCALL
+#define GLUE_XPCOM_API(type) NS_EXTERN_C NS_HIDDEN_(type) NS_FROZENCALL
+
+#ifdef IMPL_LIBXUL
+#define XPCOM_API(type) EXPORT_XPCOM_API(type)
+#elif defined(XPCOM_GLUE)
+#define XPCOM_API(type) GLUE_XPCOM_API(type)
+#else
+#define XPCOM_API(type) IMPORT_XPCOM_API(type)
+#endif
+
+</code></pre>
+
+<p>gecko/xpcom/build/nsXPCOMCID.h 定义XPCOM核心CID。</p>
+
+<p>&nbsp;</p>
+
+<p>main 函数主要执行3个大模块的函数：<br />
+&nbsp; ReserveFileDescriptors(reservedFds);<br />
+&nbsp; bool ok = LoadStaticData(argc, argv);<br />
+&nbsp; return RunProcesses(argc, argv, reservedFds); b2g进程与Nuwa之间具体如何通过ipc进行 通信并使nuwa创建出新进程</p>
+
+<p>（0）main()如下：</p>
+
+<pre class="has" name="code"><code>
+/**
+ * B2G Loader is responsible for loading the b2g process and the
+ * Nuwa process.  It forks into the parent process, for the b2g
+ * process, and the child process, for the Nuwa process.
+ *
+ * The loader loads libxul and performs initialization of static data
+ * before forking, so relocation of libxul and static data can be
+ * shared between the b2g process, the Nuwa process, and the content
+ * processes.
+ */
+int
+main(int argc, const char* argv[])
+{
+  // argc :1
+  // argv :system/b2g/b2g 
+  /**
+   * Reserve file descriptors before loading static data.
+   */
+  FdArray reservedFds;
+  ReserveFileDescriptors(reservedFds);
+/*
+   * Before fork(), libxul and static data of Gecko are loaded for
+   * sharing.
+   */
+  bool ok = LoadStaticData(argc, argv);
+  if (!ok) {
+    return 255;
+  }
+  return RunProcesses(argc, argv, reservedFds);
+}
+</code></pre>
+
+<p>（1）&nbsp; ReserveFileDescriptors(reservedFds);</p>
+
+<p>保留文件描述符（5个吗）。为什么？以供后用？3-7？</p>
+
+<p>&nbsp;</p>
+
+<p>（2）&nbsp; bool ok = LoadStaticData(argc, argv);</p>
+
+<pre class="has" name="code"><code class="language-html">1.1 主要分析loadstaticdata部分，它是在runprocesses前要做的工作，主要是loadlibxul,和xre_procloaderpreload。前者load了libxul具体是去调xpcomglue相关的enablepreload,startup,loadxulfunction等，这几个的具体工作还需继续，总体来说就是执行了xpcom相关的几个重要函数。xre_procloaderpreload的主要任务则是在xpcom初始化之前加载好xpt接口信息。
+</code></pre>
+
+<p>加载固定的数据</p>
+
+<pre class="has" name="code"><code>static bool
+LoadStaticData(int argc, const char *argv[])
+{
+  P_LOGI( );
+  char xpcomPath[MAXPATHLEN];
+  bool ok = GetXPCOMPath(argv[0], xpcomPath, MAXPATHLEN);
+  NS_ENSURE_TRUE(ok, false);
+
+  ok = LoadLibxul(xpcomPath);
+  NS_ENSURE_TRUE(ok, false);
+
+  char progDir[MAXPATHLEN];
+  ok = GetDirnameSlash(xpcomPath, progDir, MAXPATHLEN);
+  NS_ENSURE_TRUE(ok, false);
+
+  nsCOMPtr&lt;nsIFile&gt; appini = GetAppIni(argc, argv);
+  const nsXREAppData *appData;
+  if (appini) {
+    nsresult rv =
+      XRE_CreateAppData(appini, const_cast&lt;nsXREAppData**&gt;(&amp;appData));
+    NS_ENSURE_SUCCESS(rv, false);
+  } else {
+    appData = &amp;sAppData;
+  }
+
+  XRE_ProcLoaderPreload(progDir, appData);
+
+  if (appini) {
+    XRE_FreeAppData(const_cast&lt;nsXREAppData*&gt;(appData));
+  }
+
+  return true;
+}
+
+</code></pre>
+
+<p>LoadStaticData</p>
+
+<p>主要看</p>
+
+<p>{</p>
+
+<p>&nbsp; ok = LoadLibxul(xpcomPath);</p>
+
+<p>&nbsp; XRE_ProcLoaderPreload(progDir, appData);// toolkit/xre/nsEmbedFunctions.cpp and xpcom/build/nsXULAppAPI.h</p>
+
+<p>}</p>
+
+<p>XRE_ProcLoaderPreload()用于加载XPT接口模块库，PreloadXPT().</p>
+
+<pre class="has" name="code"><code>#ifdef MOZ_B2G_LOADER
+extern const nsXREAppData* gAppData;
+
+/**
+ * Preload static data of Gecko for B2G loader.
+ *
+ * This function is supposed to be called before XPCOM is initialized.
+ * For now, this function preloads
+ *  - XPT interface Information
+ */
+void
+XRE_ProcLoaderPreload(const char* aProgramDir, const nsXREAppData* aAppData)
+{
+    void PreloadXPT(nsIFile *);
+
+    nsresult rv;
+    nsCOMPtr&lt;nsIFile&gt; omnijarFile;
+    rv = NS_NewNativeLocalFile(nsCString(aProgramDir),
+			       true,
+			       getter_AddRefs(omnijarFile));
+    MOZ_RELEASE_ASSERT(NS_SUCCEEDED(rv));
+
+    rv = omnijarFile-&gt;AppendNative(NS_LITERAL_CSTRING(NS_STRINGIFY(OMNIJAR_NAME)));
+    MOZ_RELEASE_ASSERT(NS_SUCCEEDED(rv));
+
+    /*
+     * gAppData is required by nsXULAppInfo.  The manifest parser
+     * evaluate flags with the information from nsXULAppInfo.
+     */
+    gAppData = aAppData;
+
+    PreloadXPT(omnijarFile);
+
+    gAppData = nullptr;
+}
+#endif /* MOZ_B2G_LOADER */
+</code></pre>
+
+<p><img alt="" class="has" src="https://img-blog.csdn.net/201808171444097?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>LoadLibxul:</p>
+
+<p><img alt="" class="has" src="https://img-blog.csdn.net/20180815105323290?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>&nbsp;</p>
+
+<pre class="has" name="code"><code>
+#ifdef XPCOM_GLUE
+
+/**
+ * The following functions are only available in the standalone glue.
+ */
+
+/**
+ * Enabled preloading of dynamically loaded libraries
+ */
+extern "C" NS_HIDDEN_(void) XPCOMGlueEnablePreload();
+
+/**
+ * Initialize the XPCOM glue by dynamically linking against the XPCOM
+ * shared library indicated by xpcomFile.
+ */
+extern "C" NS_HIDDEN_(nsresult) XPCOMGlueStartup(const char* aXPCOMFile);
+
+typedef void (*NSFuncPtr)();
+
+struct nsDynamicFunctionLoad
+{
+  const char* functionName;
+  NSFuncPtr* function;
+};
+
+/**
+ * Dynamically load functions from libxul.
+ *
+ * @throws NS_ERROR_NOT_INITIALIZED if XPCOMGlueStartup() was not called or
+ *         if the libxul DLL was not found.
+ * @throws NS_ERROR_LOSS_OF_SIGNIFICANT_DATA if only some of the required
+ *         functions were found.
+ */
+extern "C" NS_HIDDEN_(nsresult)
+XPCOMGlueLoadXULFunctions(const nsDynamicFunctionLoad* aSymbols);
+</code></pre>
+
+<p><br /><img alt="" class="has" src="https://img-blog.csdn.net/20180817140908244?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>Enabled preloading of dynamically loaded libraries，使预加载动态链接库。<br />
+&nbsp;<br />
+extern "C" NS_HIDDEN_(void) XPCOMGlueEnablePreload();</p>
+
+<p><img alt="" class="has" src="https://img-blog.csdn.net/20180817141225537?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>NS_HIDDEN_(nsresult) XPCOMGlueStartup(const char* aXPCOMFile);</p>
+
+<p>通过动态链接XPCOM 共享库来初始化由xpcomFile指示的XPCOM glue。</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<pre class="has" name="code"><code>sed -n 898,935p toolkit/xre/nsEmbedFunctions.cpp
+
+#ifdef MOZ_B2G_LOADER
+extern const nsXREAppData* gAppData;
+
+/**
+ * Preload static data of Gecko for B2G loader.
+ *
+ * This function is supposed to be called before XPCOM is initialized.
+ * For now, this function preloads
+ *  - XPT interface Information
+ */
+void
+XRE_ProcLoaderPreload(const char* aProgramDir, const nsXREAppData* aAppData)
+{
+    void PreloadXPT(nsIFile *);
+
+    nsresult rv;
+    nsCOMPtr&lt;nsIFile&gt; omnijarFile;
+    rv = NS_NewNativeLocalFile(nsCString(aProgramDir),
+			       true,
+			       getter_AddRefs(omnijarFile));
+    MOZ_RELEASE_ASSERT(NS_SUCCEEDED(rv));
+
+    rv = omnijarFile-&gt;AppendNative(NS_LITERAL_CSTRING(NS_STRINGIFY(OMNIJAR_NAME)));
+    MOZ_RELEASE_ASSERT(NS_SUCCEEDED(rv));
+
+    /*
+     * gAppData is required by nsXULAppInfo.  The manifest parser
+     * evaluate flags with the information from nsXULAppInfo.
+     */
+    gAppData = aAppData;
+
+    PreloadXPT(omnijarFile);
+
+    gAppData = nullptr;
+}
+#endif /* MOZ_B2G_LOADER */</code></pre>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>（3）RunProcesses()如下：</p>
+
+<pre class="has" name="code"><code class="language-html">1.1 主要分析runprocesses部分，runprocesses中xreprocloaderservicerun会被server process调用，当它接收到load请求时就会执行content process的主函数。而procloaderclientinit则是被b2g loader调用，用于初始化client 端，然后runprocesses调用b2g_main启动b2g进程。
+</code></pre>
+
+<p>目的：</p>
+
+<p>/**<br />
+&nbsp;* Fork and run parent and child process.<br />
+&nbsp;* The parent is the b2g process and child for Nuwa.<br />
+&nbsp;*/<br />
+一开始就有一个进程？init？fork出b2g,b2g fork nuwa???who fork them? B2GLoader程序？</p>
+
+<p>&nbsp;XRE_ProcLoaderServiceRun(getppid(), childSock, argc, argv,..);运行服务端进程(被server process 调用)（ipc/glue/ProcessUtils_linux.cpp）</p>
+
+<p>&nbsp; XRE_ProcLoaderClientInit(childPid, parentSock, aReservedFds);客户端进程（b2g process）初始化</p>
+
+<p>b2g_main(...);具体工作是：启动b2g 进程</p>
+
+<p>&nbsp;</p>
+
+<pre class="has" name="code"><code>static int
+RunProcesses(int argc, const char *argv[], FdArray&amp; aReservedFds)
+{//fork process here 
+  P_LOGI("enter RunProcesses");
+  /*
+   * The original main() of the b2g process.  It is renamed to
+   * b2g_main() for the b2g loader.
+   */
+  int b2g_main(int argc, const char *argv[]);//just define
+//P_LOGI("call-e b2g_main");
+  int ipcSockets[2] = {-1, -1};
+  int r = socketpair(AF_LOCAL, SOCK_STREAM, 0, ipcSockets);
+  ASSERT(r == 0);
+  int parentSock = ipcSockets[0];
+  int childSock = ipcSockets[1];
+
+  r = fcntl(parentSock, F_SETFL, O_NONBLOCK);
+  ASSERT(r != -1);
+  r = fcntl(childSock, F_SETFL, O_NONBLOCK);
+  ASSERT(r != -1);
+
+  pid_t pid = fork();
+  ASSERT(pid &gt;= 0);
+  bool isChildProcess = pid == 0;
+
+  close(isChildProcess ? parentSock : childSock);
+
+  if (isChildProcess) {
+    P_LOGI("isChildProcess is not null,return XRE_ProcLoaderServiceRun");
+    /* The Nuwa process */
+    /* This provides the IPC service of loading Nuwa at the process.
+     * The b2g process would send a IPC message of loading Nuwa
+     * as the replacement of forking and executing plugin-container.
+     */
+    return XRE_ProcLoaderServiceRun(getppid(), childSock, argc, argv,
+                                    aReservedFds);
+  }
+
+  // Reap zombie child process.
+  struct sigaction sa;
+  sa.sa_handler = SIG_IGN;
+  sigemptyset(&amp;sa.sa_mask);
+  sa.sa_flags = 0;
+  sigaction(SIGCHLD, &amp;sa, nullptr);
+
+  // The b2g process
+  int childPid = pid;
+  P_LOGI("the b2g process pid:%d",pid);
+  //P_LOGI("call-s XRE_ProcLoaderClientIni");
+  XRE_ProcLoaderClientInit(childPid, parentSock, aReservedFds);
+  //from xpcom/build/nsXULAppAPI.h to load/define ipc client of the process?
+  //P_LOGI("call-e XRE_ProcLoaderClientInit");
+  P_LOGI("call-s b2g_main");
+  return b2g_main(argc, argv);
+}
+
+</code></pre>
+
+<pre class="has" name="code"><code>gecko/ipc/glue/ProcessUtils_linux.cpp
+#ifdef MOZ_B2G_LOADER
+void
+XRE_ProcLoaderClientInit(pid_t aPeerPid, int aChannelFd, FdArray&amp; aReservedFds)
+{
+  // We already performed fork(). It's safe to free the "danger zone" of file
+  // descriptors .
+  mozilla::ipc::CloseFileDescriptors(aReservedFds);
+
+  mozilla::ipc::ProcLoaderClientInit(aPeerPid, aChannelFd);
+}
+
+int
+XRE_ProcLoaderServiceRun(pid_t aPeerPid, int aFd,
+                         int aArgc, const char *aArgv[],
+                         FdArray&amp; aReservedFds)
+{
+  return mozilla::ipc::ProcLoaderServiceRun(aPeerPid, aFd,
+                                            aArgc, aArgv,
+                                            aReservedFds);
+}
+#endif /* MOZ_B2G_LOADER */
+</code></pre>
+
+<p>b2g loader 如何工作：</p>
+
+<pre class="has" name="code"><code>/**
+ * How does B2G Loader Work?
+ *
+ *  &lt;&lt;parent process&gt;&gt;      &lt;&lt;child process&gt;&gt;
+ *   ProcLoaderParent -----&gt; ProcLoaderChild
+ *         ^                       |
+ *         | load()                | content_process_main()
+ *         |                       V
+ *     ProcLoaderClient      Nuwa/plugin-container
+ *         ^
+ *         | ProcLoaderLoad()
+ *        ...
+ *     ContentParent
+ *
+ *
+ * B2G loader includes an IPC protocol PProcLoader for communication
+ * between client (parent) and server (child).  The b2g process is the
+ * client.  It requests the server to load/start the Nuwa process with
+ * the given arguments, env variables, and file descriptors.
+ *
+ * ProcLoaderClientInit() is called by B2G loader to initialize the
+ * client side, the b2g process.  Then the b2g_main() is called to
+ * start b2g process.
+ *
+ * ProcLoaderClientGeckoInit() is called by XRE_main() to create the
+ * parent actor, |ProcLoaderParent|, of PProcLoader for servicing the
+ * request to run Nuwa process later once Gecko has been initialized.
+ *
+ * ProcLoaderServiceRun() is called by the server process.  It starts
+ * an IOThread and event loop to serve the |ProcLoaderChild|
+ * implmentation of PProcLoader protocol as the child actor.  Once it
+ * recieves a load() request, it stops the IOThread and event loop,
+ * then starts running the main function of the content process with
+ * the given arguments.
+ *
+ * NOTE: The server process serves at most one load() request.
+ */
+</code></pre>
+
+<p>目的：</p>
+
+<p>/**<br />
+&nbsp;* Fork and run parent and child process.<br />
+&nbsp;* The parent is the b2g process and child for Nuwa.<br />
+&nbsp;*/</p>
+
+<p>Runprocesses</p>
+
+<p>{</p>
+
+<p>&nbsp;&nbsp;&nbsp; return XRE_ProcLoaderServiceRun(getppid(), childSock, argc, argv,<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; aReservedFds);</p>
+
+<p>&nbsp; XRE_ProcLoaderClientInit(childPid, parentSock, aReservedFds);</p>
+
+<p>&nbsp; return b2g_main(argc, argv);</p>
+
+<p>}</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>谁调了这个mian???</p>
+
+<p>ipc/app/MozillaRuntimeMain.cpp</p>
+
+<pre class="has" name="code"><code>#include "../contentproc/plugin-container.cpp"
+ 
+int
+main(int argc, char *argv[]) {
+    return content_process_main(argc, argv);
+}
+</code></pre>
+
+<p>&nbsp;<img alt="" class="has" src="https://img-blog.csdn.net/20180817150932808?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>plugin-container.cpp</p>
+
+<p>conentprocessmain()</p>
+
+<p><img alt="" class="has" src="https://img-blog.csdn.net/20180817150029983?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>&nbsp;</p>
+
+<p>gecko/xpcom/glue/standalone/nsXPCOMGlue.cpp</p>
+
+<p>LoadStaticData()---&gt;Loadlibxul()&nbsp; ----&gt;xpcomgluestartup()</p>
+
+<p><img alt="" class="has" src="https://img-blog.csdn.net/20180817172807372?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2h1bnRlcl9fXw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70" /></p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>参考：</p>
+
+<p>写的很清楚：</p>
+
+<h1>Firefox OS启动过程分析－b2g进程启动</h1>
+
+<p>2015年09月16日 16:06:28</p>
+
+<p>阅读数：1113</p>
+
+<p>b2g启动时，运行”/system/b2g/b2g”，入口在”gecko/b2g/app/B2GLoader.cpp”中，如下：</p>
+
+<pre class="has" name="code"><code>int
+main(int argc, const char* argv[])
+{
+  /**
+   * Reserve file descriptors before loading static data.
+   */
+  FdArray reservedFds;
+  ReserveFileDescriptors(reservedFds);
+
+  /*
+   * Before fork(), libxul and static data of Gecko are loaded for
+   * sharing.
+   */
+  bool ok = LoadStaticData(argc, argv);
+  if (!ok) {
+    return 255;
+  }
+
+  return RunProcesses(argc, argv, reservedFds);</code></pre>
+
+<p>代码执行流程如下所示：</p>
+
+<pre class="has" name="code"><code>main()     (b2g/app/B2GLoader.cpp)
+|
+|-ReserveFileDescriptors
+|
+|-LoadStaticData
+|
+|-RunProcesses
+       |
+       |-fork
+       |
+       |-XRE_ProcLoaderServiceRun      (child(nuwa) process)
+       |
+       |-b2g_main               (parent(b2g) process) (b2g/app/nsBrowserApp.cpp)
+                |
+                |-android::ProcessState::self()-&gt;startThreadPool();
+                |
+                |-(void)setsid();
+                |
+                |-do_main
+                         |
+                         |-mozilla::StartBootAnimation();
+                         |
+                         |-XRE_main
+                               |
+                               |-XREMain::XRE_main
+                                      |
+                                      |-new ScopedAppData(aAppData);
+                                      |
+                                      |-XREMain::XRE_mainInit
+                                      |
+                                      |-XREMain::XRE_mainStartup
+                                      |
+                                      |-mScopedXPCOM = MakeUnique&lt;ScopedXPCOMStartup&gt;();
+                                      |
+                                      |-mScopedXPCOM-&gt;Initialize();          (toolkit/xre/nsAppRunner.cpp)
+                                      |           |
+                                      |           |-NS_InitXPCOM2                       (xpcom/build/XPCOMInit.cpp)
+                                      |                  |
+                                      |                  |-sMessageLoop = new MessageLoopForUI(MessageLoop::TYPE_MOZILLA_UI);
+                                      |                  |
+                                      |                  |-ioThread = MakeUnique&lt;BrowserProcessSubThread&gt;(BrowserProcessSubThread::IO);
+                                      |                  |-ioThread-&gt;StartWithOptions
+                                      |                  |
+                                      |                  |-nsThreadManager::get()-&gt;Init();
+                                      |                  |
+                                      |                  |-nsTimerImpl::Startup();
+                                      |                  |
+                                      |                  |-nsComponentManagerImpl::gComponentManager = new nsComponentManagerImpl();
+                                      |                  |
+                                      |                  |-nsCycleCollector_init
+                                      |                  |
+                                      |                  |-nsCycleCollector_startup
+                                      |                  |
+                                      |                  |-JS_Init
+                                      |                  |
+                                      |                  |-nsComponentManagerImpl::gComponentManager-&gt;Init();(xpcom/components/nsComponentManager.cpp)
+                                      |                  |     |
+                                      |                  |     |-nsComponentManagerImpl::InitializeStaticModules()
+                                      |                  |     |
+                                      |                  |     |-RegisterModule(...)
+                                      |                  |     |
+                                      |                  |     |-greOmnijar =mozilla::Omnijar::GetReader(mozilla::Omnijar::GRE);
+                                      |                  |     |
+                                      |                  |     |-cl-&gt;location.Init(greOmnijar, "chrome.manifest");
+                                      |                  |     |
+                                      |                  |     |-nsComponentManagerImpl::RereadChromeManifests
+                                      |                  |               |
+                                      |                  |               |-nsComponentManagerImpl::RegisterManifest
+                                      |                  |                       |
+                                      |                  |                       |-DoRegisterManifest
+                                      |                  |                                |
+                                      |                  |                                |-ParseManifest
+                                      |                  |                                      |
+                                      |                  |                                      |-...
+                                      |                  |                                      |
+                                      |                  |                                      |-nsComponentManagerImpl::ManifestContract 
+                                      |                  |
+                                      |                  |-XPTInterfaceInfoManager::GetSingleton();
+                                      |                  |
+                                      |                  |-nsDirectoryService::gService-&gt;RegisterCategoryProviders();
+                                      |                  |
+                                      |                  |-SharedThreadPool::InitStatics();
+                                      |                  |
+                                      |                  |-AbstractThread::InitStatics();
+                                      |                  |
+                                      |                  |-mozilla::scache::StartupCache::GetSingleton();
+                                      |                  |
+                                      |                  |-mozilla::AvailableMemoryTracker::Activate();
+                                      |                  |
+                                      |                  |-NS_CreateServicesFromCategory(...)
+                                      |                  |
+                                      |                  |-mozilla::HangMonitor::Startup();
+                                      |                  |
+                                      |                  |-mozilla::BackgroundHangMonitor::Startup();
+                                      |                  |
+                                      |                  |-sMainHangMonitor = new mozilla::BackgroundHangMonitor
+                                      |                  
+                                      |-XREMain::XRE_mainRun()
+                                               |
+                                               |-mozilla::ipc::ProcLoaderClientGeckoInit();
+                                               |
+                                               |-mScopedXPCOM-&gt;SetWindowCreator(mNativeApp);
+                                               |
+                                               |-startupNotifier-&gt;Observe(nullptr, APPSTARTUP_TOPIC, nullptr);
+                                               |
+                                               |-mDirProvider.DoStartup();
+                                               |
+                                               |-cmdLine-&gt;Init(...)
+                                               |
+                                               |-obsService-&gt;NotifyObservers(cmdLine, "command-line-startup", nullptr);
+                                               |
+                                               |-appStartup-&gt;CreateHiddenWindow();
+                                               |
+                                               |-obsService-&gt;NotifyObservers(nullptr, "final-ui-startup", nullptr);
+                                               |
+                                               |-cmdLine-&gt;Run();     (toolkit/components/commandlines/nsCommandLine.cpp)
+                                               |          |
+                                               |          |- nsCommandLine::EnumerateValidators
+                                               |          |
+                                               |          |-nsCommandLine::EnumerateHandlers
+                                               |                  |
+                                               |                  |-EnumRun
+                                               |                        |
+                                               |                        |-nsICommandLineHandler-&gt;Handle   (first page will be loaded in here)        
+                                               |                                  
+                                               |-mNativeApp-&gt;Enable();
+                                               |
+                                               |-appStartup-&gt;Run();     (toolkit/components/startup/nsAppStartup.cpp)
+                                                         |
+                                                         |-mAppShell-&gt;Run();         (widget/gonk/nsAppShell.cpp-&gt;widget/nsBaseAppShell.cpp)
+                                                                  |
+                                                                  |-MessageLoop::current()-&gt;Run();  // run forever~~~~~
+</code></pre>
+
+<ul><li>&nbsp;</li>
+</ul><p>b2g进程启动中，会做以下几件事：<br />
+1. 在加载库文件之前保留5个文件描述符（从STDERR_FILENO+1开始）</p>
+
+<pre class="has" name="code"><code>  FdArray reservedFds;
+  ReserveFileDescriptors(reservedFds);</code></pre>
+
+<p>2.加载进程间能共享的各种数据（主要加载libxul等各种共享库，从Omnijar文件中加载各种模块的xpt信息），这样可以节约些内存。</p>
+
+<pre class="has" name="code"><code>bool ok = LoadStaticData(argc, argv);</code></pre>
+
+<p>3.开始fork进程。父亲就是b2g进程，儿子就是nuwa进程（后续再讲）。其中b2g进程具有系统root权限，负责处理系统的io，显示，操作底层硬件等。<br />
+在b2g进程中运行后，需要初始化xpcom，即调用：</p>
+
+<pre class="has" name="code"><code>  rv = NS_InitXPCOM2(&amp;mServiceManager,gDirServiceProvider-&gt;GetAppDir(), gDirServiceProvider);</code></pre>
+
+<p>最后，b2g进程会进入一个message loop中，等待处理各种请求：</p>
+
+<pre class="has" name="code"><code>appStartup-&gt;Run();</code></pre>
+
+<hr /><p>Firefox OS中进程可以分为三类：b2g进程，nuwa进程，以及content进程。其中content进程都是由nuwa进程生成的（当然在nuwa进程未ready，但又需要fork进程的时候，有可能会由b2g进程直接生成）。</p>
+
+<p>nuwa进程是如何创建新进程？b2g是如何加载第一个程序(system)的？后续文章中进行讲解。</p>
+
+<p>个人分类： <a href="https://blog.csdn.net/zembers/article/category/5785709" rel="nofollow" target="_blank">Gecko </a></p>
+
+<p>&nbsp;</p>            </div>
+                </div>
+									
+					<script>
+						(function(){
+							function setArticleH(btnReadmore,posi){
+								var winH = $(window).height();
+								var articleBox = $("div.article_content");
+								var artH = articleBox.height();
+								if(artH > winH*posi){
+									articleBox.css({
+										'height':winH*posi+'px',
+										'overflow':'hidden'
+									})
+									btnReadmore.click(function(){
+										articleBox.removeAttr("style");
+										$(this).parent().remove();
+									})
+								}else{
+									btnReadmore.parent().remove();
+								}
+							}
+							var btnReadmore = $("#btn-readmore");
+							if(btnReadmore.length>0){
+								if(currentUserName){
+									setArticleH(btnReadmore,3);
+								}else{
+									setArticleH(btnReadmore,1.2);
+								}
+							}
+						})()
+					</script>
+					</article>

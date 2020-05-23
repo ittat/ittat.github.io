@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>没有VPN的情况下同步LineageOS源代码 - Blog</title>
+    <title> - Blog</title>
     <meta name="author"  content="">
-    <meta name="description" content="没有VPN的情况下同步LineageOS源代码">
-    <meta name="keywords"  content="Lineage, Android, complie">
+    <meta name="description" content="">
+    <meta name="keywords"  content="FirefoxOS, B2GOS">
     <!-- Open Graph -->
-    <meta property="og:title" content="没有VPN的情况下同步LineageOS源代码 - Blog">
+    <meta property="og:title" content=" - Blog">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="/2017/08/27/%E6%B2%A1%E6%9C%89VPN%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%90%8C%E6%AD%A5LineageOS%E6%BA%90%E4%BB%A3%E7%A0%81.html">
+    <meta property="og:url" content="/2018/10/02/FFos-finished-nfc-2.5.html">
     <meta property="og:description" content="Android/linux/Qt/html">
     <meta property="og:site_name" content="Blog">
     <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
@@ -47,92 +47,66 @@
         <div class="post-tags">
              
             
-            <a href="/tags#Lineage" class="post-tag">Lineage</a>
+            <a href="/tags#FirefoxOS" class="post-tag">FirefoxOS</a>
             
-            <a href="/tags#Android" class="post-tag">Android</a>
-            
-            <a href="/tags#complie" class="post-tag">complie</a>
+            <a href="/tags#B2GOS" class="post-tag">B2GOS</a>
             
             
         </div>
-        <h1>没有VPN的情况下同步LineageOS源代码</h1>
+        <h1></h1>
         <div class="post-meta">
             <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="" target="_blank" rel="author">ittat</a></></span>
-            <time class="post-meta-item" datetime="17-08-27"><i class="iconfont icon-date"></i>27 Aug 2017</time>
+            <time class="post-meta-item" datetime="18-10-02"><i class="iconfont icon-date"></i>02 Oct 2018</time>
         </div>
     </div>
     
     <div class="filter"></div>
-    <div class="post-cover" style="background: url('http://www.youbangsheji.com/UploadFiles/2017-01/sitemanager/2017011009013129096.jpg') center no-repeat; background-size: cover;">
+    <div class="post-cover" style="background: url('') center no-repeat; background-size: cover;">
     
 </header>
 
 <div class="post-content">
     
     <article class="markdown-body">
-        <p>##在没有VPN的情况下同步LineageOS14.1源代码</p>
-
-<h1 id="在没有fq的情况下同步lineageos的源代码前几天刚刚将lineage的141有代码同步到本地repo超过60个gb唉只能怪天朝的城墙太高了">在没有FQ的情况下同步lineageos的源代码前几天刚刚将lineage的14.1有代码同步到本地，.repo超过60个GB。唉，只能怪天朝的城墙太高了。</h1>
-
-<blockquote>
-  <p>lineage就如同一把好刀（不锈钢的噢），在城外叫的GitHub“练钢场”有这种lineage不锈钢原料购买，而刀模要在城外的Google“打铁铺”进口。 公元二十一世纪初，天朝开始“闭关锁城”，天朝下令封禁Google。于是就有了一群会翻墙的“码侠”出现了…</p>
-</blockquote>
-
-<h3 id="原理">原理</h3>
-<p>在GitHub上的lineage OS库会除了会同步lineage的代码外，还会同步一些来自AOSP的源代码(在lineage库里的default.xml有定义），而恰好就是这些AOSP的同步源被墙了，所以我修改为国内清华大学镜像站的AOSP库来同步这些代码。</p>
-
-<h3 id="开始">开始</h3>
-<p>工作环境： <strong>Ubuntu 16</strong></p>
-<blockquote>
-  <p>安装git 、curl</p>
-</blockquote>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo apt-get updatesudo apt-get upgradesudo apt-get install git curl
-</code></pre></div></div>
-<blockquote>
-  <p>安装repo工具</p>
-</blockquote>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo &gt; ~/bin/repo
-chmod a+x ~/bin/repo 
-</code></pre></div></div>
-<blockquote>
-  <p>进入同步源码目录，初始化repo</p>
-</blockquote>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>repo init -u git://github.com/LineageOS/android.git -b cm-14.1
-</code></pre></div></div>
-<blockquote>
-  <p>修改default.xml 的AOSP同步源</p>
-</blockquote>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim ./. repo/default.xml
-</code></pre></div></div>
-
-<p>找到的下面位置</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;remote  name="aosp"
-           fetch="https://android.googlesource.com"
-           review="android-review.googlesource.com"
-           revision="refs/tags/android-7.1.2_r29" /&gt;
-</code></pre></div></div>
-<p>将</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fetch="https://android.googlesource.com"
-</code></pre></div></div>
-<p>改成</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fetch="https://aosp.tuna.tsinghua.edu.cn"
-</code></pre></div></div>
-<p><strong>OK</strong></p>
-<blockquote>
-  <p>开始进入同步时间</p>
-</blockquote>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>repo sync -j10 -f
-</code></pre></div></div>
-
-<p>接下来，刷刷微博，看看书，睡觉，60多G，全速走你</p>
+        <article>
+		<div id="article_content" class="article_content clearfix csdn-tracking-statistics" data-pid="blog" data-mod="popu_307" data-dsm="post">
+								<div class="article-copyright">
+					版权声明：本文为博主打劫来的文章！！！未经允许可以随便转载。 May you do good and not evil.  May you share freely, never taking more than you give.					https://blog.csdn.net/hunter___/article/details/80442182				</div>
+								            <link rel="stylesheet" href="https://csdnimg.cn/release/phoenix/template/css/ck_htmledit_views-e2445db1a8.css" />
+						<div class="htmledit_views">
+                <p>1.修改nfcd开关项</p><p>２.修改client 端配置文件，ro.nfc.enabled 的值。</p><p>总结，替换两个文件。</p><p>对比默认配置文件，<br /></p><pre><code class="language-html">vimdiff out/target/product/mako/system/build.prop ~/project/nexus4/B2G/out/target/product/mako/system/build.prop </code></pre>修改生成build.prop的文件，通过deviceinfo.sh生成。<p></p><pre><code class="language-html">cp /home/munger/project/ffos-v2.2-mako/device/lge/mako/device.mk device/lge/mako/</code></pre><br /><p><br /></p><p><br /></p>            </div>
+                </div>
+									
+					<script>
+						(function(){
+							function setArticleH(btnReadmore,posi){
+								var winH = $(window).height();
+								var articleBox = $("div.article_content");
+								var artH = articleBox.height();
+								if(artH > winH*posi){
+									articleBox.css({
+										'height':winH*posi+'px',
+										'overflow':'hidden'
+									})
+									btnReadmore.click(function(){
+										articleBox.removeAttr("style");
+										$(this).parent().remove();
+									})
+								}else{
+									btnReadmore.parent().remove();
+								}
+							}
+							var btnReadmore = $("#btn-readmore");
+							if(btnReadmore.length>0){
+								if(currentUserName){
+									setArticleH(btnReadmore,3);
+								}else{
+									setArticleH(btnReadmore,1.2);
+								}
+							}
+						})()
+					</script>
+					</article>
 
     </article>
     
@@ -184,33 +158,51 @@ chmod a+x ~/bin/repo
 <!--     <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-            <a href="/2017/09/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BA%8C%E7%BA%A7MS-office.html" class="read-next-link"></a>
+            <a href="/2018/10/02/Firefox-OS%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90-system%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8.html" class="read-next-link"></a>
             <section>
-                <span>计算机二级MS office 资料收集整理</span>
-                <p>（一）、知乎上找到的一些个人经验</p>
+                <span>Firefox os启动过程分析 System应用启动</span>
+                <p>										            																					Firefox OS的sys...</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="http://img0.pconline.com.cn/pconline/1107/27/2483091_05.jpg" alt="">
             
         </div>
         
+         
+        <div class="read-next-item">
+            <a href="/2017/09/18/FirefoxOS%E5%AD%A6%E4%B9%A0%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86.html" class="read-next-link"></a>
+            <section>
+                <span>FirefoxOS学习相关资料收集</span>
+                <p>2017-09-18</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="" alt="">
+            
+        </div>
         
     </section> -->
     <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-            <a href="/2017/09/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BA%8C%E7%BA%A7MS-office.html" class="read-next-link"></a>
+            <a href="/2018/10/02/Firefox-OS%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90-system%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8.html" class="read-next-link"></a>
             <section>
-                <span>计算机二级MS office 资料收集整理</span>
-                <p>（一）、知乎上找到的一些个人经验</p>
+                <span>Firefox os启动过程分析 System应用启动</span>
+                <p>										            																					Firefox OS的sys...</p>
             </section>
-            
-<!--             <div class="filter"></div> -->
-            <img src="http://img0.pconline.com.cn/pconline/1107/27/2483091_05.jpg" alt="">
             
         </div>
         
+         
+        <div class="read-next-item">
+            <a href="/2017/09/18/FirefoxOS%E5%AD%A6%E4%B9%A0%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86.html" class="read-next-link"></a>
+            <section>
+                <span>FirefoxOS学习相关资料收集</span>
+                <p>2017-09-18</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="" alt="">
+            
+        </div>
         
     </section>
 

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>smartisan U1编译CM13问题方案 - Blog</title>
+    <meta name="author"  content="">
+    <meta name="description" content="smartisan U1编译CM13问题方案">
+    <meta name="keywords"  content="Lineage, Android, complie, CM">
+    <!-- Open Graph -->
+    <meta property="og:title" content="smartisan U1编译CM13问题方案 - Blog">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/2017/09/13/smartisan-U1%E7%BC%96%E8%AF%91CM13%E9%97%AE%E9%A2%98(%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0).html">
+    <meta property="og:description" content="Android/linux/Qt/html">
+    <meta property="og:site_name" content="Blog">
+    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
+    <link rel="stylesheet" href="/../../../assets/css/github-markdown.css">
+    <link rel="stylesheet" href="/../../../assets/css/prism.css">
+    <link rel="stylesheet" href="/../../../assets/css/share.min.css">
+    <link rel="stylesheet" href="/../../../assets/css/app.min.css">
+</head>
+<body>
+<!--     [if lt IE 10]>
+<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+<![endif]
+<input id="nm-switch" type="hidden" value="true"> -->
+
+<header class="g-header">
+    <div class="g-logo">
+        <a href="/index.html"></a>
+    </div>
+    <i id="menu-toggle" class="iconfont icon-menu"></i>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+        </ul>
+    </nav>
+</header>
+
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default " data-theme="default">
+    <div class="post-wrapper">
+        <div class="post-tags">
+             
+            
+            <a href="/tags#Lineage" class="post-tag">Lineage</a>
+            
+            <a href="/tags#Android" class="post-tag">Android</a>
+            
+            <a href="/tags#complie" class="post-tag">complie</a>
+            
+            <a href="/tags#CM" class="post-tag">CM</a>
+            
+            
+        </div>
+        <h1>smartisan U1编译CM13问题方案</h1>
+        <div class="post-meta">
+            <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="" target="_blank" rel="author">ittat</a></></span>
+            <time class="post-meta-item" datetime="17-09-13"><i class="iconfont icon-date"></i>13 Sep 2017</time>
+        </div>
+    </div>
+    
+    <div class="filter"></div>
+    <div class="post-cover" style="background: url('') center no-repeat; background-size: cover;">
+    
+</header>
+
+<div class="post-content">
+    
+    <article class="markdown-body">
+        <p>2017-09-13</p>
+
+<h2 id="问题一">问题一：</h2>
+
+<p>编译audio.primary.msm8916时报错</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>target arm C: audio.primary.msm8916 &lt;= hardware/qcom/audio-caf/msm8916/hal/audio_hw.c
+In file included from hardware/qcom/audio-caf/msm8916/hal/audio_hw.c:53:0:
+hardware/qcom/audio-caf/msm8916/hal/audio_extn/audio_extn.h:402:1: warning: useless storage class specifier in empty declaration
+ };
+ ^
+hardware/qcom/audio-caf/msm8916/hal/audio_hw.c: In function 'get_snd_codec_id':
+hardware/qcom/audio-caf/msm8916/hal/audio_hw.c:431:14: error: 'SND_AUDIOCODEC_ALAC' undeclared (first use in this function)
+         id = SND_AUDIOCODEC_ALAC;
+              ^
+hardware/qcom/audio-caf/msm8916/hal/audio_hw.c:431:14: note: each undeclared identifier is reported only once for each function it appears in
+hardware/qcom/audio-caf/msm8916/hal/audio_hw.c:434:14: error: 'SND_AUDIOCODEC_APE' undeclared (first use in this function)
+         id = SND_AUDIOCODEC_APE;
+              ^
+
+</code></pre></div></div>
+<p>原因：
+msm8916的audio-caf里面的audio_extn.h头文件没有定义并赋值SND_AUDIOCODEC_ALAC和SND_AUDIOCODEC_APE。
+所以，抄袭msm8894的audio_extn.h头文件（为了不在报错，数值并不一定正常）。
+在hardware/qcom/audio-caf/msm8916/hal/audio_extn/audio_extn.h加入：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#ifndef ALAC_OFFLOAD_ENABLED
+#define AUDIO_FORMAT_ALAC 0x1C000000UL
+#define SND_AUDIOCODEC_ALAC 0x00000019
+#endif
+
+#ifndef APE_OFFLOAD_ENABLED
+#define AUDIO_FORMAT_APE 0x1D000000UL
+#define SND_AUDIOCODEC_APE 0x00000020
+#endif
+</code></pre></div></div>
+
+<h2 id="问题二">问题二</h2>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:4424:22: error: 'V4L2_CID_MPEG_VIDC_VIDEO_PRIORITY' was not declared in this scope
+         control.id = V4L2_CID_MPEG_VIDC_VIDEO_PRIORITY;
+                      ^
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:4426:29: error: 'V4L2_MPEG_VIDC_VIDEO_PRIORITY_REALTIME_ENABLE' was not declared in this scope
+             control.value = V4L2_MPEG_VIDC_VIDEO_PRIORITY_REALTIME_ENABLE;
+                             ^
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:4428:29: error: 'V4L2_MPEG_VIDC_VIDEO_PRIORITY_REALTIME_DISABLE' was not declared in this scope
+             control.value = V4L2_MPEG_VIDC_VIDEO_PRIORITY_REALTIME_DISABLE;
+                             ^
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:4441:22: error: 'V4L2_CID_MPEG_VIDC_VIDEO_OPERATING_RATE' was not declared in this scope
+         control.id = V4L2_CID_MPEG_VIDC_VIDEO_OPERATING_RATE;
+
+</code></pre></div></div>
+<p>添加videodev2.h到/device/../../include/linux里面</p>
+
+<h2 id="问题三">问题三</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:1760:29: error: 'V4L2_PIX_FMT_H264_MVC' was not declared in this scope
+         output_capability = V4L2_PIX_FMT_H264_MVC;
+                             ^
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:1935:34: error: 'V4L2_PIX_FMT_H264_MVC' was not declared in this scope
+         if (output_capability == V4L2_PIX_FMT_H264_MVC) {
+                                  ^
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp: In member function 'OMX_ERRORTYPE omx_vdec::fill_buffer_done(OMX_HANDLETYPE, OMX_BUFFERHEADERTYPE*)':
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:7228:38: error: 'V4L2_PIX_FMT_H264_MVC' was not declared in this scope
+                 output_capability == V4L2_PIX_FMT_H264_MVC) &amp;&amp;
+                                      ^
+</code></pre></div></div>
+
+<p>修改/device/../../include/linux/videodev2.h，添加：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 MVC */
+
+</code></pre></div></div>
+
+<h2 id="问题四">问题四</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp: In member function 'int omx_vdec::alloc_map_ion_memory(OMX_U32, OMX_U32, ion_allocation_data*, ion_fd_data*, int)':
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:8440:17: error: 'struct ion_allocation_data' has no member named 'heap_id_mask'
+     alloc_data-&gt;heap_id_mask = ION_HEAP(ION_IOMMU_HEAP_ID);
+                 ^
+hardware/qcom/media-caf/msm8916/mm-video-v4l2/vidc/vdec/src/omx_vdec_msm8974.cpp:8442:21: error: 'struct ion_allocation_data' has no member named 'heap_id_mask'
+         alloc_data-&gt;heap_id_mask = ION_HEAP(MEM_HEAP_ID);
+                     ^
+
+</code></pre></div></div>
+<p>添加ion.h到/device/../../include/linux里面</p>
+
+<h2 id="问题五">问题五</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hardware/qcom/display-caf/msm8916/libgralloc/framebuffer.cpp:354:19: error: 'metadata_op_get_ion_fd' was not declared in this scope
+     metadata.op = metadata_op_get_ion_fd;
+                   ^
+hardware/qcom/display-caf/msm8916/libgralloc/framebuffer.cpp:361:22: error: 'union msmfb_metadata::&lt;anonymous&gt;' has no member named 'fbmem_ionfd'
+     if(metadata.data.fbmem_ionfd &lt; 0) {
+                      ^
+In file included from hardware/qcom/display-caf/msm8916/libgralloc/framebuffer.cpp:22:0:
+hardware/qcom/display-caf/msm8916/libgralloc/framebuffer.cpp:363:55: error: 'union msmfb_metadata::&lt;anonymous&gt;' has no member named 'fbmem_ionfd'
+                                         metadata.data.fbmem_ionfd);
+                                                       ^
+hardware/qcom/display-caf/msm8916/libgralloc/framebuffer.cpp:367:24: error: 'union msmfb_metadata::&lt;anonymous&gt;' has no member named 'fbmem_ionfd'
+     fd = metadata.data.fbmem_ionfd;
+                        ^
+
+</code></pre></div></div>
+<p>添加msm_mdp.h到/device/../../include/linux里面</p>
+
+<h2 id="问题六">问题六</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bw_flag = MDSS_MAX_BW_LIMIT_CAMERA;
+改为
+bw_flag = 1;
+``
+## 问题七
+
+</code></pre></div></div>
+<p>hardware/qcom/display-caf/msm8916/libhdmi/hdmi.cpp:91:14: error: ‘HDMI_EVFRMT_4096x2160p24_16_9’ was not declared in this scope
+     EDIDData(HDMI_EVFRMT_4096x2160p24_16_9, 4096, 2160, 24, 35),
+              ^
+```</p>
+
+<p>这个4096x2160p24<em>16_9分辨率的在kernel头文件里没有定义，不过，这个应该是给电视机用的，U1用不上，简单粗暴，注释掉~</em>~</p>
+
+<p>（不断更新）</p>
+
+
+    </article>
+    
+    <div class="social-share-wrapper">
+        <div class="social-share"></div>
+    </div>
+    
+</div>
+
+<section class="author-detail">
+    <section class="post-footer-item author-card">
+        <div class="avatar">
+            <img src="//assets/img/df0bff06377e966185471c60415e4994.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author"></div>
+        <div class="bio">
+            <p>Android/linux/Qt/html开发者</p>
+        </div>
+        
+        <ul class="sns-links">
+            
+            <li>
+                <a href="" target="_blank">
+                    <i class="iconfont icon-weibo"></i>
+                </a>
+            </li>
+            
+            <li>
+                <a href="" target="_blank">
+                    <i class="iconfont icon-juejin"></i>
+                </a>
+            </li>
+            
+            <li>
+                <a href="" target="_blank">
+                    <i class="iconfont icon-instagram"></i>
+                </a>
+            </li>
+            
+            <li>
+                <a href="" target="_blank">
+                    <i class="iconfont icon-github"></i>
+                </a>
+            </li>
+            
+        </ul>
+        
+    </section>
+<!--     <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+            <a href="/2017/09/18/FirefoxOS%E5%AD%A6%E4%B9%A0%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86.html" class="read-next-link"></a>
+            <section>
+                <span>FirefoxOS学习相关资料收集</span>
+                <p>2017-09-18</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="" alt="">
+            
+        </div>
+        
+         
+        <div class="read-next-item">
+            <a href="/2017/09/11/smartisan-U1-device-and-vendor-%E7%BC%96%E5%86%99(%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0).html" class="read-next-link"></a>
+            <section>
+                <span>smartisan U1 CM13 device and vendor的编写记录（不断更新）</span>
+                <p>2017-09-11##思路  现在GitHub上并没有U1 的CM13 Device开源，只有coffee的CM...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="" alt="">
+            
+        </div>
+        
+    </section> -->
+    <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+            <a href="/2017/09/18/FirefoxOS%E5%AD%A6%E4%B9%A0%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86.html" class="read-next-link"></a>
+            <section>
+                <span>FirefoxOS学习相关资料收集</span>
+                <p>2017-09-18</p>
+            </section>
+            
+<!--             <div class="filter"></div> -->
+            <img src="" alt="">
+            
+        </div>
+        
+         
+        <div class="read-next-item">
+            <a href="/2017/09/11/smartisan-U1-device-and-vendor-%E7%BC%96%E5%86%99(%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0).html" class="read-next-link"></a>
+            <section>
+                <span>smartisan U1 CM13 device and vendor的编写记录（不断更新）</span>
+                <p>2017-09-11##思路  现在GitHub上并没有U1 的CM13 Device开源，只有coffee的CM...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="" alt="">
+            
+        </div>
+        
+    </section>
+
+
+    
+</section>
+
+<footer class="g-footer">
+    <section>Blog © 2020</section>
+</footer>
+
+<script src="/assets/js/social-share.min.js"></script>
+<script>
+    socialShare('.social-share', {
+        sites: ['wechat','weibo','douban','twitter'],
+        wechatQrcodeTitle: "分享到微信朋友圈",
+        wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+</script>
+<script>
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+/*写入自己的disqus信息*/
+s.src = 'https://liaokeyu.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="/assets/js/prism.js"></script>
+<script src="/assets/js/index.min.js"></script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-105630632-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+</body>
+</html>
