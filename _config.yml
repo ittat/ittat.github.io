@@ -1,1 +1,66 @@
-theme: jekyll-theme-cayman
+# Site settings 配置站点
+title: 'Blog'
+description: 'Android/linux/Qt/html'
+keyword: 'Null all'
+url: '' # your host
+baseurl: '/'
+
+# Navigation links
+nav:
+  home: '/'
+  tags: '/tags.html'
+
+# Author 配置博主信息
+author: ''
+nickname: 'Null '
+bio: 'Android/linux/Qt/html开发者'
+avatar: '/assets/img/df0bff06377e966185471c60415e4994.jpg'
+
+# Search
+search: true
+#google_analytics
+# google_analytics: true
+
+# Night mode
+nightMode: true
+
+# Comments
+disqus: false
+disqus_url: 'https://liaokeyu.disqus.com/embed.js'
+
+# Share
+social-share: true
+social-share-items: ['wechat', 'weibo', 'douban', 'twitter']
+
+# theme color 主题皮肤
+theme-color: 'default'  # pink or default
+
+# Post header background patterns (when the post no cover): circuitBoard, overlappingCircles, food, glamorous, ticTacToe, seaOfClouds
+postPatterns: 'circuitBoard'
+
+# SNS settings 配置社交网站url: weibo, zhihu, twitter, instagrame, juejin, github, douban, facebook, dribble, uicn, jianshu, medium, linkedin
+sns:
+  weibo: ''
+  juejin: ''
+  instagram: ''
+  github: ''
+
+# Tags 设置标签
+recommend-tags: true # whether or not display recommend-tags on the sidebar
+recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value
+
+# Build settings
+paginate: 6
+paginate_path: 'page:num'
+exclude: ['node_modules', 'dev', 'package.json', 'gulpfile.js', '.gitignore', 'README.md']
+
+# Markdown
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+
+RSS: false
+
+# Plugins
+gems: [jekyll-paginate]
