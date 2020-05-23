@@ -40,9 +40,9 @@ postPatterns: 'circuitBoard'
 
 # SNS settings 配置社交网站url: weibo, zhihu, twitter, instagrame, juejin, github, douban, facebook, dribble, uicn, jianshu, medium, linkedin
 sns:
-  weibo: ''
-  juejin: ''
-  instagram: ''
+  zhihu: 'https://ittat.github.io/tf/index.html'
+  juejin: 'https://ittat.github.io/ffos/index.html'
+  uicn: ''
   github: ''
 
 # Tags 设置标签
