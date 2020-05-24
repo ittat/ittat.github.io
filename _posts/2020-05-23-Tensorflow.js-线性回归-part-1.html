@@ -4,11 +4,16 @@
 <h1 style="text-align: center;"> Tensorflow.js 线性回归part1 </h1>
 <div id="printf"></div>
 <script>
-var printf=function(str){
-    var out = document.getElementById("printf");
-    //out.innerHTML ="test";
-    var txt1 = document.createTextNode('<p>'+str+'</p>');
-    out.appendChild(txt1);
+var printf=function(input){
+    // var out = document.getElementById("printf");
+    // //out.innerHTML ="test";
+    // var txt1 = document.createTextNode('<p>'+str+'</p>');
+    // out.appendChild(txt1);
+  var testdiv = document.getElementById("printf");
+  var str_p = document.createElement("p");
+  var str = document.createTextNode(input);
+  str_p.appendChild(str);
+  printf.appendChild(str_p);
 }
 printf("sdfsdf");
   //定义一个线性回归模型。
