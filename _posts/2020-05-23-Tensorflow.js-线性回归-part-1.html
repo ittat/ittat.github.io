@@ -4,7 +4,7 @@
 <h1 style="text-align: center;"> Tensorflow.js 线性回归part1 </h1>
 <p id="printf"></p>
 <script>
-var printf=function(){
+var printf=function(str){
     var out = document.getElementById("printf");
     out.innerHTML ="test";
     out.innerHTML ="test";
@@ -25,6 +25,7 @@ model.fit(xs, ys, {epochs: 10}).then(() => {
 // 在该模型从未看到过的数据点上使用模型进行推理
 
   model.predict(tf.tensor2d([5], [1, 1])).print();
+  printf(model.predict(tf.tensor2d([5], [1, 1])));
   // 打开浏览器开发工具查看输出
 });
   
