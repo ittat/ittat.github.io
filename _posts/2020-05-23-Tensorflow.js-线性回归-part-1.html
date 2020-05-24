@@ -2,12 +2,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
 
 <h1 style="text-align: center;"> Tensorflow.js 线性回归part1 </h1>
-<p id="printf"></p>
+<div id="printf"></div>
 <script>
 var printf=function(str){
     var out = document.getElementById("printf");
     //out.innerHTML ="test";
-    var txt1 = document.createTextNode(str);
+    var txt1 = document.createTextNode('<p>'+str+'</p>');
     out.appendChild(txt1);
 }
 printf("sdfsdf");
