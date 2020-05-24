@@ -4,6 +4,11 @@
 <h1 style="text-align: center;"> Tensorflow.js 线性回归part1 </h1>
 <p id="printf"></p>
 <script>
+var printf=function(){
+    var out = document.getElementById("printf");
+    out.innerHTML ="test";
+}
+printf();
   //定义一个线性回归模型。
 const model = tf.sequential();
 model.add(tf.layers.dense({units: 1, inputShape: [1]}));
