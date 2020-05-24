@@ -7,7 +7,8 @@
 var printf=function(str){
     var out = document.getElementById("printf");
     //out.innerHTML ="test";
-    out.appendChild(str);
+    var txt1 = document.createTextNode(str);
+    out.appendChild(txt1);
 }
 printf("sdfsdf");
   //定义一个线性回归模型。
