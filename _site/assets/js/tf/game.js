@@ -11,7 +11,8 @@ class Game {
   init() {
     this.y = 8;
     this.x = 8; 
-    this.food_local = 0; //食物坐标
+    this.foodLocalX = 0; //食物坐标
+    this.foodLocalY = 0; //食物坐标
     this.size = 8; //蛇身单元大小
     this.direction = 2;   // 1 向上  2 向右   0 左   3下
     //清除畫布
@@ -52,7 +53,7 @@ class Game {
     this.Canvas.fillStyle = "#006699";//内部填充颜色
     this.Canvas.strokeStyle = "#006699";//边框颜色
     this.Canvas.fillRect(this.x, this.y, this.size, this.size);//绘制矩形
-    if((this.food_local)==this.x && (this.food_local)==this.y){  	//吃食物
+    if((this.foodLocalX)==this.x && (this.foodLocalY)==this.y){  	//吃食物
       this.rand_frog();
       return 5;
     }
@@ -61,12 +62,16 @@ class Game {
 
   rand_frog(){
     do{
-    this.food_local = Math.ceil(Math.random()*(8 - 1) + 1);
-    this.food_local *= 8;
-    }while(this.food_local == this.x);
+    this.foodLocalX = Math.ceil(Math.random()*(8 - 1) + 1);
+    this.foodLocalX *= 8;
+    }while(this.foodLocalX == this.x);
+    do{
+      this.foodLocalY = Math.ceil(Math.random()*(8 - 1) + 1);
+      this.foodLocalY *= 8;
+    }while(this.foodLocalY == this.y);
     this.Canvas.fillStyle = "#000000";//内部填充颜色
     this.Canvas.strokeStyle = "#000000";//边框颜色
-    this.Canvas.fillRect(this.food_local, this.food_local,this.size, this.size);//绘制矩形
+    this.Canvas.fillRect(this.foodLocalX, this.foodLocalY,this.size, this.size);//绘制矩形
   }
 
 //   0
@@ -78,8 +83,8 @@ class Game {
     info[1]= this.x;
     info[2] = this.CanvasX - this.x;
     info[3] = this.CanvasY - this.y;
-    info[4] = this.food_local - this.x;
-    info[5] = this.food_local - this.y;
+    info[4] = this.foodLocalX - this.x;
+    info[5] = this.foodLocalY - this.y;
     return info;
   }
 

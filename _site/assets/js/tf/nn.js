@@ -13,10 +13,17 @@ initModel(){
   // define A model sequential --> layers --> compile
   this.model = tf.sequential({
     layers:[
-      tf.layers.dense({units:300, activation:'relu',inputShape:[6]}),
+      tf.layers.dense({units:100, activation:'relu',inputShape:[6]}),
       tf.layers.dense({units:600, activation:'relu'}),
+      tf.layers.dense({units:500, activation:'relu'}),
+      tf.layers.dense({units:500, activation:'relu'}),
+      tf.layers.dense({units:400, activation:'relu'}),
       tf.layers.dense({units:300, activation:'relu'}),
+      tf.layers.dense({units:200, activation:'relu'}),
       tf.layers.dense({units:100, activation:'relu'}),
+      tf.layers.dense({units:80, activation:'relu'}),
+      tf.layers.dense({units:40, activation:'relu'}),
+      tf.layers.dense({units:20, activation:'relu'}),
       tf.layers.dense({units:4,   activation: 'softmax'}),
     ]
   });
@@ -32,7 +39,7 @@ initModel(){
 train() {
   let loss = 0;
   // console.log('this.xs: ' + this.xs);
-  console.log('this.ys: ' + this.ys);
+  // console.log('this.ys: ' + this.ys);
   //訓練模型
   // fit()用于使用给定输入训练模型.
   // predict()用于实际预测.它为输入样本生成输出预测.

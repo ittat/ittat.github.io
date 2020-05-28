@@ -2,6 +2,7 @@
 <html>
 <head>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
 <script src="../../../assets/js/tf/game.js"> </script>
 <script src="../../../assets/js/tf/nn.js"> </script>
 </head>
@@ -12,14 +13,22 @@
 	<button type="button" id="startPredicting" onclick="starttrain()">start train</button>
 	<button type="button" id="stopPredicting" onclick="Predicting()">Predicting</button>
   <button type="button" id="stopPredicting" onclick="StopPredicting()">StopPredicting</button>
-	<button type="button" id="save" onclick="downloadsModel()">downloadsModel</button>
+  <button type="button" id="stopPredicting" onclick="clearData()">clearData</button>
+	<button type="button" id="outputModel" onclick="outputModel()">outputModel</button>
+  <button type="button" id="downloadsModel" onclick="downloadsModel()">downloadsModel</button>
   <input type="file" name="file" id="upload-json" />
   <input type="file" name="file" id="upload-weights" />
-  <button type="button" id="save" onclick="updatemodel()">updatemodel</button>
+  <button type="button" id="sinputModelave" onclick="inputModel()">inputModel</button>
+  <input type="button" value="下载預訓練模型" onclick="Download()" />
+  <div id="download"></div>
+  <p id="otl_score"></p>
 <script>
   const game = new Game(document.getElementById('Canvas'));
+  const html_otl_score = document.getElementById('otl_score');
   game.init();
   var Predict = 0;
+  var achieve = 0;
+  var otl_score = 0;
   const nn = new Nn(4);
   nn.initModel();
   function recarddata(){
@@ -62,33 +71,52 @@ function autoDo(){
           diert = a;
         }
       }
-      var score = game.next(diert)
-      if(score == 5){
-        nn.train();
-      }
+      var score = game.next(diert);
+      otl_score += score;
+      html_otl_score.innerHTML = otl_score;
+      // if(score == 5){
+        // ++achieve;
+        // if(achieve == 40){
+        // nn.train();
+        // nn.clearData();
+        // Predict = 0;
+        // }
+      // }
       // if(score != -5){
       //   nn.addExample(x,pre_y);
       // }
+      // if(score == -5){
+      //   nn.clearData();
+      //   achieve = 0;
+      // }
       if(Predict == 1){
-        setTimeout("autoDo()","1000");  
+        setTimeout("autoDo()","70");  
       }
     });
   }   
-  function downloadsModel(){
+  function outputModel(){
     nn.downloadsModel();
   }
-  // function updatemodel(){
-  //   const uploadJSONInput = "../../../assets/js/tf/my-model.json";
-  //   const uploadWeightsInput = "../../../assets/js/tf/my-model.weights.bin";
-  //   nn.updateModel(uploadJSONInput,uploadWeightsInput);
-  // }
-  function updatemodel(){
+  function inputModel(){
     const uploadJSONInput = document.getElementById('upload-json');
     const uploadWeightsInput = document.getElementById('upload-weights');
     //  console.log('uploadJSONInput:'+uploadJSONInput.files[0]);
     nn.updateModel(uploadJSONInput,uploadWeightsInput);
   }
-
+  function clearData(){
+    nn.clearData();
+  }
+  function downloadsModel(){
+    window.open("../../../assets/js/tf/nn.js");
+  }
+function Download(){
+  var download = $("#download");
+  download.append("<a id=\"down1\" href=\"../../../assets/js/tf/my-model.json\" target=\"_blank\" download=\"my-model.json\" style=\"display:none\">下载預訓練模型1</a>");
+  download.append("<a id=\"down2\" href=\"../../../assets/js/tf/my-model.weights.bin\" target=\"_blank\" download=\"my-model.json\" style=\"display:none\">下载預訓練模型2</a>");
+  console.log(download);
+  $("#down1")[0].click();
+  $("#down2")[0].click();
+}
 
 </script>
 </body>
