@@ -1,0 +1,46 @@
+{
+  "version": "0.0.1",
+  "name": "Kava",
+  "description": "J2ME emulator for KaiOS",
+  "type": "privileged",
+  "permissions": {
+    "device-storage:sdcard":{ 
+      "access": "readonly",
+      "description": "JAR picking"
+    },
+    "storage": {
+      "description": "Unlimited storage"
+    },
+    "tcp-socket" : {
+      "description" : "Emulate sockets"
+    }
+  },
+  "origin": "app://kava.831337.xyz",
+  "launch_path": "/index.html",
+  "orientation": ["portrait"],
+  "installs_allowed_from": [
+    "*"
+  ],
+  "fullscreen": "true",
+  "icons": {
+    "56": "/img/icon56.png",
+    "112": "/img/icon112.png"
+  },
+  "developer": {
+    "name": "Luxferre"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Kava",
+      "description": "J2ME emulator for KaiOS"
+    }
+  },
+  "default_locale": "en-US",
+  "activities": {
+    "xyz.831337.kava.pickFile": {
+      "href": "./picker.html",
+      "disposition": "inline",
+      "returnValue": true
+    }
+  }
+}

@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Jekyll - ittats blog</title>
-    <meta name="author"  content="ittat">
-    <meta name="description" content="Hello Jekyll">
-    <meta name="keywords"  content="jekyll">
+    <title>没有VPN的情况下同步LineageOS源代码 - Blog</title>
+    <meta name="author"  content="">
+    <meta name="description" content="没有VPN的情况下同步LineageOS源代码">
+    <meta name="keywords"  content="Lineage, Android, complie">
     <!-- Open Graph -->
-    <meta property="og:title" content="Hello Jekyll - ittats blog">
+    <meta property="og:title" content="没有VPN的情况下同步LineageOS源代码 - Blog">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="/2017/04/18/hello-jekyll.html">
-    <meta property="og:description" content="Null">
-    <meta property="og:site_name" content="ittats blog">
+    <meta property="og:url" content="/2017/08/27/Tensorflow.js-%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-part-1.html">
+    <meta property="og:description" content="Android/linux/Qt/html">
+    <meta property="og:site_name" content="Blog">
     <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
     <link rel="stylesheet" href="//at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
     <link rel="stylesheet" href="/../../../assets/css/github-markdown.css">
@@ -42,28 +42,82 @@
     </nav>
 </header>
 
-<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover" data-theme="default">
+<header class="g-banner post-header post-pattern-circuitBoard bgcolor-default " data-theme="default">
     <div class="post-wrapper">
         <div class="post-tags">
              
             
-            <a href="/tags#jekyll" class="post-tag">jekyll</a>
+            <a href="/tags#Lineage" class="post-tag">Lineage</a>
+            
+            <a href="/tags#Android" class="post-tag">Android</a>
+            
+            <a href="/tags#complie" class="post-tag">complie</a>
             
             
         </div>
-        <h1>Hello Jekyll</h1>
+        <h1>没有VPN的情况下同步LineageOS源代码</h1>
         <div class="post-meta">
-            <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="" target="_blank" rel="author">Jekyll</a></></span>
-            <time class="post-meta-item" datetime="17-04-18"><i class="iconfont icon-date"></i>18 Apr 2017</time>
+            <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="" target="_blank" rel="author">ittat</a></></span>
+            <time class="post-meta-item" datetime="17-08-27"><i class="iconfont icon-date"></i>27 Aug 2017</time>
         </div>
     </div>
+    
+    <div class="filter"></div>
+    <div class="post-cover" style="background: url('http://www.youbangsheji.com/UploadFiles/2017-01/sitemanager/2017011009013129096.jpg') center no-repeat; background-size: cover;">
     
 </header>
 
 <div class="post-content">
     
     <article class="markdown-body">
-        
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.0/dist/tf.min.js"></script>
+
+<h1 style="text-align: center;"> Tensorflow.js 线性回归part1 </h1>
+<h3 style="text-align: center;"> 看源码 </h3>
+<div id="printf_result"></div>
+<div id="printf_loss"></div>
+
+<script>
+var printf_result=function(input){
+  var out = document.getElementById("printf_result");
+  var str_p = document.createElement("p");
+  var str = document.createTextNode(input);
+  str_p.appendChild(str);
+  out.appendChild(str_p);
+}
+var printf_loss=function(input){
+  var out = document.getElementById("printf_loss");
+  out.innerHTML = input;
+}
+const x= tf.variable(tf.scalar(9));
+const data_x = tf.tensor1d([1,2,3,4,5,6,7,8,9]);
+const data_y = data_x.add(0);
+const w = tf.variable(tf.scalar(Math.random()));
+const b = tf.variable(tf.scalar(Math.random()));
+f=function(x){
+  return x.mul(w).add(b);
+}
+loss=function(pre_y,y){
+  return pre_y.sub(y).square().mean();
+}
+const learningRate=0.01;
+const numIterations = 200;
+const optimizer = tf.train.sgd(learningRate);
+
+// Train the model.
+for (let i = 0; i < numIterations; i++) {
+  optimizer.minimize(() => {
+    const loss_r = loss(f(data_x), data_y);
+    printf_loss(loss_r);
+    return loss_r;
+  });
+}
+printf_result('w:'+w);
+printf_result('b:'+b);
+printf_result('f:'+f(tf.scalar(13)));
+
+</script>
+
 
     </article>
     
@@ -78,28 +132,28 @@
         <div class="avatar">
             <img src="//assets/img/profile.png" alt="">
         </div>
-        <div class="author-name" rel="author">ittat</div>
+        <div class="author-name" rel="author"></div>
         <div class="bio">
-            <p>Null</p>
+            <p>Android/linux/Qt/html开发者</p>
         </div>
         
         <ul class="sns-links">
             
             <li>
-                <a href="" target="_blank">
-                    <i class="iconfont icon-weibo"></i>
+                <a href="https://ittat.github.io/tf/index.html" target="_blank">
+                    <i class="iconfont icon-zhihu"></i>
                 </a>
             </li>
             
             <li>
-                <a href="" target="_blank">
+                <a href="https://ittat.github.io/ffos/index.html" target="_blank">
                     <i class="iconfont icon-juejin"></i>
                 </a>
             </li>
             
             <li>
                 <a href="" target="_blank">
-                    <i class="iconfont icon-instagram"></i>
+                    <i class="iconfont icon-uicn"></i>
                 </a>
             </li>
             
@@ -115,6 +169,19 @@
 <!--     <section class="post-footer-item read-next">
         
         <div class="read-next-item">
+            <a href="/2017/09/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BA%8C%E7%BA%A7MS-office.html" class="read-next-link"></a>
+            <section>
+                <span>计算机二级MS office 资料收集整理</span>
+                <p>（一）、知乎上找到的一些个人经验</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="http://img0.pconline.com.cn/pconline/1107/27/2483091_05.jpg" alt="">
+            
+        </div>
+        
+         
+        <div class="read-next-item">
             <a href="/2017/08/27/%E6%B2%A1%E6%9C%89VPN%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%90%8C%E6%AD%A5LineageOS%E6%BA%90%E4%BB%A3%E7%A0%81.html" class="read-next-link"></a>
             <section>
                 <span>没有VPN的情况下同步LineageOS源代码</span>
@@ -126,10 +193,22 @@
             
         </div>
         
-        
     </section> -->
     <section class="post-footer-item read-next">
         
+        <div class="read-next-item">
+            <a href="/2017/09/08/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%BA%8C%E7%BA%A7MS-office.html" class="read-next-link"></a>
+            <section>
+                <span>计算机二级MS office 资料收集整理</span>
+                <p>（一）、知乎上找到的一些个人经验</p>
+            </section>
+            
+<!--             <div class="filter"></div> -->
+            <img src="http://img0.pconline.com.cn/pconline/1107/27/2483091_05.jpg" alt="">
+            
+        </div>
+        
+         
         <div class="read-next-item">
             <a href="/2017/08/27/%E6%B2%A1%E6%9C%89VPN%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E5%90%8C%E6%AD%A5LineageOS%E6%BA%90%E4%BB%A3%E7%A0%81.html" class="read-next-link"></a>
             <section>
@@ -137,11 +216,10 @@
                 <p>##在没有VPN的情况下同步LineageOS14.1源代码</p>
             </section>
             
-<!--             <div class="filter"></div> -->
+            <div class="filter"></div>
             <img src="http://www.youbangsheji.com/UploadFiles/2017-01/sitemanager/2017011009013129096.jpg" alt="">
             
         </div>
-        
         
     </section>
 
@@ -150,10 +228,10 @@
 </section>
 
 <footer class="g-footer">
-    <section>ittats blog © 2017</section>
+    <section>Blog © 2020</section>
 </footer>
 
-<script src="/assets/js/social-share.min.js"></script>
+<script src="../../../assets/js/social-share.min.js"></script>
 <script>
     socialShare('.social-share', {
         sites: ['wechat','weibo','douban','twitter'],
@@ -181,7 +259,17 @@ s.setAttribute('data-timestamp', +new Date());
 </script>
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
-<script src="/assets/js/prism.js"></script>
-<script src="/assets/js/index.min.js"></script>
+<script src="../../../assets/js/prism.js"></script>
+<script src="../../../assets/js/index.min.js"></script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-105630632-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
 </body>
 </html>

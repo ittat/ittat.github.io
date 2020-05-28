@@ -1,0 +1,35 @@
+<!-- Load TensorFlow.js. This is required to use MobileNet. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1"> </script>
+<!-- Load the MobileNet model. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script>
+  <h1 style="text-align: center;"> Tensorflow.js part3 </h1>
+  <h3 style="text-align: center;"> 看源码 </h3>
+<!-- Replace this with your image. Make sure CORS settings allow reading the image! -->
+<img id="img" src="../../../assets/img/tf/dog.jpg" width="20%" >
+<img id="ipod" src="../../../assets/img/tf/ipod.jpg" width="20%" >
+<p id="res"></p>
+
+<!-- Place your code in the script tag below. You can also use an external .js file -->
+<script>
+  // Notice there is no 'import' statement. 'mobilenet' and 'tf' is
+  // available on the index-page because of the script tag above.
+
+  const img = document.getElementById('img');
+  const ipod = document.getElementById('ipod');
+  const res = document.getElementById('res');
+
+  // Load the model.
+  mobilenet.load().then(model => {
+    // Classify the image.
+    model.classify(img).then(predictions => {
+      console.log('Predictions: ');
+      console.log(predictions);
+      res.innerHTML = predictions[0].className;
+    });
+    model.classify(ipod).then(predictions => {
+      console.log('Predictions: ');
+      console.log(predictions);
+      res.innerHTML = predictions[0].className;
+    });
+  });
+</script>
