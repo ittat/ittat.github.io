@@ -4,19 +4,32 @@
 <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
 </head>
 <body>
-  <h1 style="text-align: center;"> 物聯網 </h1>
-  <h3 style="text-align: center;"> 看源码 </h3>
-	<button type="button" id="button1" style="height:50; width:50" onclick="on()">on</button>
-	<button type="button" id="button2" style="height:50; width:50" onclick="off()">off</button>
+  <h1 id="h1" style="text-align: center;"> 滤水机状态： </h1>
+	<button type="button" id="button1" style="height:45%;width:45%;font-size:50px" onclick="on()">开</button>
+	<button type="button" id="button2" style="height:45%;width:45%;font-size:50px " onclick="off()">关</button>
+ 	<button type="button" id="button3" style="height:45%;width:90%; font-size:50px" onclick="check()">更新状态</button>
 <script>
+const p1 = document.getElementById('h1');
 function on(){
      $.get("http://192.168.123.71/on",function(data,status){
-        alert("数据: " + data + "\n状态: " + status);
+        // alert("数据: " + data + "\n状态: " + status);
+        check();
       });
 }
 function off(){
      $.get("http://192.168.123.71/off",function(data,status){
-        alert("数据: " + data + "\n状态: " + status);
+        // alert("数据: " + data + "\n状态: " + status);
+        check();
+      });
+}
+function check(){
+     $.get("http://192.168.123.71/check",function(data,status){
+        // alert("数据: " + data + "\n状态: " + status);
+        if(data == "0"){
+          p1.innerHTML = "滤水机状态：关";
+        }else if(data == "1"){
+          p1.innerHTML = "滤水机状态：开";
+        }
       });
 }
 </script>
