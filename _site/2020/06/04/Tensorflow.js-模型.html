@@ -1,0 +1,32 @@
+<html lang="en">
+<head>
+</head>
+<body>
+
+<h1 style="text-align: center;"> Tensorflow.js </h1>
+<h3 style="text-align: center;"> 看源码 </h3>
+<canvas id="Canvas" style="border:1px solid #c3c3c3;"></canvas>
+<div id="printf_result"></div>
+<div id="printf_loss"></div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+<script> 
+// const model = await tf.loadLayersModel("../../../assets/modeljs/model.json");
+// pre_y = tf.tidy(() => return model.predict());
+function convertImageToCanvas(image) {
+	var canvas = document.createElement("Canvas").getContext("2d");
+	canvas.width = image.width;
+	canvas.height = image.height;
+    console.log(image.width);
+    console.log(image.height);
+	canvas.drawImage(image, 0, 0);
+	// return canvas;
+}
+var image = new Image();
+image.src  = '../../../assets/js/8.png';
+convertImageToCanvas(image);
+</script>
+</body>
+</html>

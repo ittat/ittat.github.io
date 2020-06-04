@@ -1,0 +1,20 @@
+
+<html>
+<head>
+<!-- <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
+</head>
+<body>
+
+<script>
+function setup() {
+  let inp = createInput('');
+  inp.input(myInputEvent);
+}
+
+function myInputEvent() {
+  console.log('you are typing: ', this.value());
+}
+</script>
+</body>
+</html>

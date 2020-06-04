@@ -9,7 +9,7 @@
 <body>
   <h1 style="text-align: center;"> Tensorflow.js part3 </h1>
   <h3 style="text-align: center;"> 看源码 </h3>
-<canvas id="Canvas" width="80" height="80" style="border:1px solid #c3c3c3;"></canvas>
+<canvas id="Canvas" width="160" height="160" style="border:1px solid #c3c3c3;"></canvas>
 	<button type="button" id="startPredicting" onclick="starttrain()" >start train</button>
 	<button type="button" id="stopPredicting" onclick="Predicting()" >Predicting</button>
   <button type="button" id="stopPredicting" onclick="StopPredicting()" >StopPredicting</button>
